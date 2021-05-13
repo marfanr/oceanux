@@ -120,6 +120,7 @@ boot32:
     mov gs, ax
     mov ss, ax
     mov eax, 0x8000
+    mov ebx, eax
     mov esp, eax
 
 

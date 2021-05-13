@@ -4,10 +4,6 @@ SECTIONS
 {
     . = 0x8000;
 
-    .boot32 : {
-        *(.boot32*)
-    }
-
     .text : {
         *(.text)
         *(.rodata*)

@@ -4,7 +4,7 @@ void write_string( int colour, const char *string );
 
 void apa() {
 
-    write_string(5, "asa");
+    write_string(5, "asa");    
 
 }
 
