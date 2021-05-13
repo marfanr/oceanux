@@ -1,9 +1,8 @@
 void write_string( int colour, const char *string );
 
-void apa()
-{
-    char str[] = { 'h', 'e' };
-    write_string(4, str);
+void apa() {
+    char msg[] = "asa";
+    write_string(5, msg);
 
 }
 

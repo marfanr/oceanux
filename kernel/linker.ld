@@ -1,16 +1,16 @@
-ENTRY(start)
+ENTRY(_start)
 
 SECTIONS
 {
     . = 0x8000;
 
-    .boot :
-    {
-        KEEP(*(.multiboot_header))
+    .boot32 : {
+        *(.boot32*)
     }
 
     .text : {
         *(.text)
+        *(.rodata*)
     }
 
     .rodata : {

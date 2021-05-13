@@ -17,7 +17,8 @@ _start:
     mov     ss,     ax
 
     ; Initialize the stack pointer.
-    mov     sp,     Var.StackTop
+    mov     bp,     0x8000
+    mov sp, bp
 
     ; Clear all remaining general purpose registers.
     xor     bx,     bx
@@ -106,25 +107,25 @@ msg.HardwareNotSupported db "ERR: Hardware Not Supported :(", 0x0d, 0x0a, 0
 ; Entering
 ; 32 BIT ---------------------------------------------------------
 
-bits 32
-extern testa
+[bits 32]
 extern apa
+section .text
+
 boot32:
+    .text:
     mov ax, DATA_SEG
-    mov ds, ax
+    mov ds, eax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
+    mov eax, 0x8000
+    mov esp, eax
 
-    mov esp, 0x8000
-    mov esp, ebp    
 
-    mov byte [0xB8000], 'C'
-
-    call testa
+    ; mov byte [0xB8000], 'S'
     jmp apa
-    mov byte [0xB8000], 'Z'
+
     jmp $
 
 

@@ -115,7 +115,7 @@ readVolume:
     .readLoader:
         mov bx, [es:di + ISO9660.Directory.locationLBA]
 
-        .calcSize:            
+        .calcSize:
 
             mov cx, [es:di + ISO9660.Directory.size]
 
