@@ -1,8 +1,10 @@
 void write_string( int colour, const char *string );
 
+#define text "hello world"
+
 void apa() {
-    char msg[] = "asa";
-    write_string(5, msg);
+
+    write_string(5, "asa");
 
 }
 
