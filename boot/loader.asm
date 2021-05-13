@@ -33,49 +33,26 @@ _start:
     mov sp, bp
     mov si, loaderLoaded
     call writeString
+    call A20Setup
 
-.init:
-    call check_cpuid
-    call check_long_mode
+init:
+    mov si, loaderLoaded
+    call writeString
+
 
 jmp $
 
-check_cpuid:
-    pushfd
-    pop eax
-    mov ecx, eax
-    xor eax, 1 << 21
-    push eax
-    popfd
-    pushfd
-    pop eax
-    push ecx
-    popfd
-    cmp eax,ecx
-    je .no_cpuid
-    ret
-.no_cpuid:
-    mov al, "C"
-    jmp fail
 
-check_long_mode:
-    mov eax, 0x80000000
-    cpuid
-    cmp eax, 0x80000001
-    jb .no_long_mode
 
-    mov eax, 0x80000001
-    cpuid
-    test edx, 1 << 29
-    jz .no_long_mode
-
-    ret
-.no_long_mode:
-    mov al, "L"
-    jmp fail
-
+; Fail -----------------------------------------------------------
 fail:
     mov si, msg.Fail
+    call writeString
+    jmp $
+
+; HARDWARE NOT SUPPORTED -----------------------------------------
+HardwareNotSupported:
+    mov si, msg.HardwareNotSupported
     call writeString
     jmp $
 
@@ -83,9 +60,11 @@ fail:
 
 loaderLoaded db "entering stage#2...", 0x0d, 0x0a, 0
 msg.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
+msg.HardwareNotSupported db "ERR: Hardware Not Supported :(", 0x0d, 0x0a, 0
 
-; STRING ---------------------------------------------------------
+; LIB ------------------------------------------------------------
 
 %include 'boot/string.asm'
+%include 'boot/A20.asm'
 
 times   0x8000 - ($ - $$)    db  0
