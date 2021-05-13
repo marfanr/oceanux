@@ -34,7 +34,9 @@ _start:
     mov si, loaderLoaded
     call writeString
 
+.init:
     call check_cpuid
+    call check_long_mode
 
 jmp $
 
@@ -56,16 +58,34 @@ check_cpuid:
     mov al, "C"
     jmp fail
 
+check_long_mode:
+    mov eax, 0x80000000
+    cpuid
+    cmp eax, 0x80000001
+    jb .no_long_mode
+
+    mov eax, 0x80000001
+    cpuid
+    test edx, 1 << 29
+    jz .no_long_mode
+
+    ret
+.no_long_mode:
+    mov al, "L"
+    jmp fail
+
 fail:
     mov si, msg.Fail
     call writeString
     jmp $
 
-%include 'boot/string.asm'
-
 ; DATA -----------------------------------------------------------
 
-loaderLoaded db "loader was found", 0x0d, 0x0a, 0
+loaderLoaded db "entering stage#2...", 0x0d, 0x0a, 0
 msg.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
+
+; STRING ---------------------------------------------------------
+
+%include 'boot/string.asm'
 
 times   0x8000 - ($ - $$)    db  0
