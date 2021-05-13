@@ -108,24 +108,26 @@ msg.HardwareNotSupported db "ERR: Hardware Not Supported :(", 0x0d, 0x0a, 0
 ; 32 BIT ---------------------------------------------------------
 
 [bits 32]
-extern apa
+extern testq
+
 section .text
 
 boot32:
     .text:
     mov ax, DATA_SEG
-    mov ds, eax
+    mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov eax, 0x8000
-    mov ebx, eax
-    mov esp, eax
+
+    mov ebx,0x8000
+    mov esp, ebx
 
 
     ; mov byte [0xB8000], 'S'
-    jmp apa
+    jmp testq
+
 
     jmp $
 

@@ -7,25 +7,19 @@ jmp Var.BaseSeg : boot
 
 ; the first loaded section
 boot:
-; Disable interrupts while setting up stack pointer.
     cli
-
-    ; Initialized data segment
+    
     mov     ax,     cs
     mov     ds,     ax
     mov     fs,     ax
     mov     gs,     ax
 
-    ; Set up a temporary stack.
     xor     ax,     ax
     mov     ss,     ax
     mov     sp,     Var.StackTop
 
-    ; The es segment is 0, which is useful for absolute addressing of the
-    ; first 64KiB of memory.
-    mov     es,     ax
+        mov     es,     ax
 
-    ; Re-enable interrupts.
     sti
 
     mov byte [es:DRIVE_NUMBER], dl

@@ -8,8 +8,8 @@ struct vga_t {
 
 struct vga_t v;
 
-void apa() {
-	v.video = (unsigned short*)0xB8000;    
+void apa() {    
+	v.video = (unsigned short*)0xB8000;
 	set(15, 0);
 	putc('A');
 }
