@@ -1,19 +1,25 @@
-void write_string( int colour, const char *string );
+void putc(char c);
+void set(int fg, int bg);
 
-#define text "hello world"
+struct vga_t {
+        unsigned short *video;
+	unsigned short attribute;
+};
+
+struct vga_t v;
 
 void apa() {
-
-    write_string(5, "asa");
-
+	v.video = (unsigned short*)0xB8000;
+	set(15, 0);
+	putc('A');
 }
 
-void write_string( int colour, const char *string )
+void putc(char c)
 {
-    volatile char *video = (volatile char*)0xb8000;
-    while( *string != 0 )
-    {
-        *video++ = *string++;
-        *video++ = colour;
-    }
+    *v.video++ = v.attribute | c;
+}
+
+void set(int fg, int bg)
+{
+    v.attribute = ((bg << 4) | (fg & 0x0F)) << 8;
 }
