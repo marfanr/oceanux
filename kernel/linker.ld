@@ -1,10 +1,28 @@
-ENTRY(_start)
+ENTRY(start)
 
 SECTIONS
 {
-    . = 0x7e00;
-    .text :
+    . = 0x8000;
+
+    .boot :
     {
-        *(.text);
+        KEEP(*(.multiboot_header))
+    }
+
+    .text : {
+        *(.text)
+    }
+
+    .rodata : {
+        *(.rodata)
+    }
+
+    .data : {
+        *(.data)
+    }
+
+    .bss : {
+        *(COMMON)
+        *(.bss)
     }
 }

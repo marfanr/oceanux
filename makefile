@@ -14,8 +14,8 @@ KERNEL_C_OBJ = $(patsubst %.c, $(BUILDDIR)/%.o, $(KERNEL_C_SRC))
 default: boot kernel iso
 
 kernel:: $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ)
-	mkdir -p $(BUILDDIR)/iso	
-	x86_64-elf-ld -o $(BUILDDIR)/iso/kernel.sys $(BUILDDIR)/loader.bin $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) -Ttext 0x8000 --oformat binary
+	mkdir -p $(BUILDDIR)/iso
+	ld -o $(BUILDDIR)/iso/kernel.sys $(BUILDDIR)/loader.bin $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) -T $(KERNELDIR)/linker.ld --oformat binary
 	@echo -e " $(ETERA) build kernel success"
 
 $(BUILDDIR)/%.o : %.asm

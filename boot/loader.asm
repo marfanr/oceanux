@@ -37,6 +37,9 @@ _start:
 
 init:
     cli
+    mov ah, 0x00
+    mov al, 3
+    int 10h
 
     ; load gdt
     lgdt [gdt_pointer]
@@ -104,8 +107,42 @@ msg.HardwareNotSupported db "ERR: Hardware Not Supported :(", 0x0d, 0x0a, 0
 ; 32 BIT ---------------------------------------------------------
 
 bits 32
-
+extern testa
+extern apa
 boot32:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    mov esp, 0x8000
+    mov esp, ebp    
+
+    mov byte [0xB8000], 'C'
+
+    call testa
+    jmp apa
+    mov byte [0xB8000], 'Z'
     jmp $
+
+
+; Note that, since we are in protected mode, we cannot call BIOS INT any more.
+; Instead, we feed ASCII to buffer, which is [ebx]
+print:
+.loop:
+    lodsb                           ; load string byte from [DS:SI] into AL
+    or al,al                        ;
+    jz .halt                         ; the above two lines => jump if AL==0. Equivalent to CMP AL; JE halt
+    or eax,0x0100           ; config text color to be 1 (blue)  [4bit bg color][4bit text color][8bit ascii]
+                        ; more color info can be found in https://en.wikipedia.org/wiki/Video_Graphics_Array#Color_palette
+    mov word [ebx], ax      ; feed ASCII and color to buffer in memory
+    add ebx,2                       ; increase ebx by two bytes (1byte for color, 1byte for ASCII)
+    jmp .loop
+.halt:
+    ret
+
+hello: db "Hello world!",0
 
 times   0x8000 - ($ - $$)    db  0
