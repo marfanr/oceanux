@@ -34,13 +34,38 @@ _start:
     mov si, loaderLoaded
     call writeString
 
+    call check_cpuid
+
 jmp $
+
+check_cpuid:
+    pushfd
+    pop eax
+    mov ecx, eax
+    xor eax, 1 << 21
+    push eax
+    popfd
+    pushfd
+    pop eax
+    push ecx
+    popfd
+    cmp eax,ecx
+    je .no_cpuid
+    ret
+.no_cpuid:
+    mov al, "C"
+    jmp fail
+
+fail:
+    mov si, msg.Fail
+    call writeString
+    jmp $
 
 %include 'boot/string.asm'
 
-; %include 'boot/gdt.asm'
-; %include 'boot/A20.asm'
+; DATA -----------------------------------------------------------
 
-loaderLoaded db "loader was loaded", 0x0d, 0x0a, 0
+loaderLoaded db "loader was found", 0x0d, 0x0a, 0
+msg.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
 
 times   0x8000 - ($ - $$)    db  0
