@@ -115,15 +115,9 @@ readVolume:
     .readLoader:
         mov bx, [es:di + ISO9660.Directory.locationLBA]
 
-        .calcSize:
-            mov cx, [es:di + ISO9660.Directory.size + 2]
-            cmp cx, 0
-            jne fail
+        .calcSize:            
 
             mov cx, [es:di + ISO9660.Directory.size]
-
-            cmp cx, 0x8000
-            ja fail
 
             add cx, Var.SectorBuffer.Size - 1
             shr cx, 11
