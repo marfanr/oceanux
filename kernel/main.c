@@ -3,13 +3,13 @@ void set(int fg, int bg);
 
 struct vga_t {
         unsigned short *video;
-	unsigned short attribute;
+	    unsigned short attribute;
 };
 
 struct vga_t v;
 
 void apa() {
-	v.video = (unsigned short*)0xB8000;
+	v.video = (unsigned short*)0xB8000;    
 	set(15, 0);
 	putc('A');
 }
