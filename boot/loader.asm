@@ -38,11 +38,6 @@ _start:
 
 init:
     cli
-    ; change background
-    mov ah, 0bh
-    mov bh, 00h
-    mov bl, 0x01
-    int 10h
     ; video mode
         call vesa_setup
 
@@ -64,7 +59,7 @@ vesa_setup:
     .get_vesa_info:
         push es
         mov ax, 0x4F00
-        mov di, 0x9000
+        mov di, 0x00003200
         int 0x10
         cmp ax, 0x004F
         jne fail
@@ -130,7 +125,6 @@ HardwareNotSupported:
     jmp $
 
 ; DATA -------------------------------------------------------------------------
-
 loaderLoaded db "Now On Sector#2...", 0x0d, 0x0a, 0
 msg.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
 msg.enterProtectedMode db "Activating Protected Mode(32Bit), and Long Mode(64Bit)", 0x0d, 0x0a, 0
@@ -302,8 +296,10 @@ gdt64:
 bits 64
 extern kern_main
 boot64:
+     mov rdi, 0x00003200
     ; call Main  Kernel Function
     call kern_main
     jmp $
+
 
 times   0x8000 - ($ - $$)    db  0
