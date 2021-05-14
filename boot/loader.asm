@@ -41,14 +41,14 @@ init:
     ; VESA ---------------------------------------------------------------------
     push es
     mov ax, 0x4F00
-    mov di, 0x00003200
+    mov di, 0x49500
     int 0x10
     cmp ax, 0x004F
     jne fail
     pop es
 
     mov ax, 0x4F02	; set VBE mode
-    mov bx, 0x4118	; VBE mode number; notice that bits 0-13 contain the mode number and bit 14 (LFB) is set and bit 15 (DM) is clear.
+    mov bx, 0x4114	; VBE mode number; notice that bits 0-13 contain the mode number and bit 14 (LFB) is set and bit 15 (DM) is clear.
     int 0x10			; call VBE BIOS
     cmp ax, 0x004F	; test for error
     jne fail
@@ -249,7 +249,6 @@ fail32:
     mov byte [0xb800a], al
     hlt
 
-
 ; print video mode -------------------------------------------------------------
 msg32.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
 
@@ -293,7 +292,7 @@ gdt64:
 bits 64
 extern kern_main
 boot64:
-     mov rdi, 0x00003200
+     mov rdi, 0x49500
     ; call Main  Kernel Function
     call kern_main
     jmp $
