@@ -38,33 +38,31 @@ _start:
 
 init:
     cli
-    ; video mode
-        call vesa_setup
+    ; VESA ---------------------------------------------------------------------
+    push es
+    mov ax, 0x4F00
+    mov di, 0x00003200
+    int 0x10
+    cmp ax, 0x004F
+    jne fail
+    pop es
+
+    mov ax, 0x4F02	; set VBE mode
+    mov bx, 0x4118	; VBE mode number; notice that bits 0-13 contain the mode number and bit 14 (LFB) is set and bit 15 (DM) is clear.
+    int 0x10			; call VBE BIOS
+    cmp ax, 0x004F	; test for error
+    jne fail
+    ; --------------------------------------------------------------------- VESA
 
     ; load gdt
     lgdt [GDT32_POINTER]
 
-    mov si, msg.enterProtectedMode
-    call writeString
     ; switch protected mode
     mov eax, cr0
     or al, 1       ; set PE (Protection Enable) bit in CR0 (Control Register 0)
     mov cr0, eax
 
     jmp GDT32_CODE : boot32
-
-; VESA Setup -------------------------------------------------------------------
-vesa_setup:
-    ; Get VESA BIOS information
-    .get_vesa_info:
-        push es
-        mov ax, 0x4F00
-        mov di, 0x00003200
-        int 0x10
-        cmp ax, 0x004F
-        jne fail
-        pop es
-        ret
 
 ; GDT --------------------------------------------------------------------------
 struc GDT32
@@ -127,7 +125,6 @@ HardwareNotSupported:
 ; DATA -------------------------------------------------------------------------
 loaderLoaded db "Now On Sector#2...", 0x0d, 0x0a, 0
 msg.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
-msg.enterProtectedMode db "Activating Protected Mode(32Bit), and Long Mode(64Bit)", 0x0d, 0x0a, 0
 msg.HardwareNotSupported db "ERR: Hardware Not Supported :(", 0x0d, 0x0a, 0
 
 ; LIB --------------------------------------------------------------------------

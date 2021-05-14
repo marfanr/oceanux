@@ -1,7 +1,9 @@
 struct vga_t {
         unsigned short *video;
 	    unsigned short attribute;
-};
+} v;
+
+
 
 void putc(char c)
 {
