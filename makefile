@@ -8,30 +8,34 @@ GCC = x86_64-elf-gcc
 GCCFLAG = -ffreestanding -c -nostdlib -Wall -Wextra -fno-pic
 BOOTDIR = boot
 KERNEL_ASM_SRC = $(shell find $(KERNELDIR) -name "*.asm")
-KERNEL_ASM_OBJ = $(patsubst %.asm, $(BUILDDIR)/%.o, $(KERNEL_ASM_SRC))
+KERNEL_ASM_OBJ = $(patsubst $(KERNELDIR)/%.asm, $(BUILDDIR)/$(KERNELDIR)%.o, $(KERNEL_ASM_SRC))
 KERNEL_C_SRC = $(shell find $(KERNELDIR) -name "*.c")
-KERNEL_C_OBJ = $(patsubst %.c, $(BUILDDIR)/%.o, $(KERNEL_C_SRC))
+KERNEL_C_OBJ = $(patsubst $(KERNELDIR)/%.c, $(BUILDDIR)/$(KERNELDIR)/%.o, $(KERNEL_C_SRC))
 LIB_C_SRC = $(shell find $(LIBDIR) -name "*.c")
-LIB_C_OBJ = $(patsubst %.c, $(BUILDDIR)/%.o, $(LIB_C_SRC))
+LIB_C_OBJ = $(patsubst $(LIBDIR)/%.c, $(BUILDDIR)/$(LIBDIR)/%.o, $(LIB_C_SRC))
 
 
-default: boot kernel iso
+default: boot main iso
 
-kernel:: $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ)
-	mkdir -p $(BUILDDIR)/iso	
-	x86_64-elf-ld -o $(BUILDDIR)/iso/kernel.sys $(BUILDDIR)/loader.bin $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) -T $(KERNELDIR)/linker.ld --oformat binary
+main:: $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(LIB_C_OBJ)
+	mkdir -p $(BUILDDIR)/iso
+	x86_64-elf-ld -o $(BUILDDIR)/iso/kernel.sys $(BUILDDIR)/loader.bin $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(LIB_C_OBJ) -T $(KERNELDIR)/linker.ld --oformat binary
 	@echo -e " $(ETERA) build kernel success"
 
-$(BUILDDIR)/%.o : %.asm
+$(BUILDDIR)/$(KERNELDIR)/%.o : $(KERNELDIR)/%.asm
 	mkdir -p $(dir $@)
 	$(AS) $(ASFLAG64) $< -o $@
 
-$(BUILDDIR)/%.o : %.c
+$(BUILDDIR)/$(KERNELDIR)/%.o  : $(KERNELDIR)/%.c
+	mkdir -p $(dir $@)
+	$(GCC) $(GCCFLAG) $< -o $@
+
+$(BUILDDIR)/$(LIBDIR)/%.o  : $(LIBDIR)/%.c
 	mkdir -p $(dir $@)
 	$(GCC) $(GCCFLAG) $< -o $@
 
 iso:
-	@genisoimage -R -J -c bootcat -b $(BOOTDIR)/boot.sys -no-emul-boot -boot-load-size 4 -o \
+	genisoimage -R -J -c bootcat -b $(BOOTDIR)/boot.sys -no-emul-boot -boot-load-size 4 -o \
 	 ./$(BUILDDIR)/etera.iso ./$(BUILDDIR)/iso
 	@echo -e " $(ETERA) write image success"
 
@@ -57,4 +61,4 @@ PURPLE =\033[0;35m # Purple
 CYAN = \033[0;36m # Cyan
 RESET := \033[0m # Text Reset
 
-ETERA := [$(CYAN)OCEANUX$(RESET)]
+ETERA := [$(BLUE)OCEANUX$(RESET)]
