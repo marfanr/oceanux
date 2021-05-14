@@ -12,10 +12,7 @@ struct vga_t {
 struct vga_t v;
 
 void kern_main() {
-    setCursorPosition(0);
-	v.video = (unsigned short*)0xB8000;
-	set(13, 0);
-	putc('H');
+  
 }
 
 void putc(char c)

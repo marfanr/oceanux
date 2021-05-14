@@ -39,9 +39,7 @@ _start:
 init:
     cli
     ; video mode
-    mov ax, 0x4F00
-    mov cx, 2
-    int 0x10
+        call vesa_setup
 
     ; load gdt
     lgdt [GDT32_POINTER]
@@ -52,6 +50,11 @@ init:
     mov cr0, eax
 
     jmp GDT32_CODE : boot32
+
+; VESA Setup -------------------------------------------------------------------
+vesa_setup:
+    
+    ret
 
 ; GDT --------------------------------------------------------------------------
 struc GDT32
