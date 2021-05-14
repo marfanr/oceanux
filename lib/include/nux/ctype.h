@@ -1,4 +1,3 @@
-#pragma once
 #ifndef NUX_CTYPE
 #define NUX_CTYPE
 

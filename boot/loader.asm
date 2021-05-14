@@ -38,9 +38,10 @@ _start:
 
 init:
     cli
-    mov ah, 0x00
-    mov al, 3
-    int 10h
+    ; video mode
+    mov ax, 0x4F00
+    mov cx, 2
+    int 0x10
 
     ; load gdt
     lgdt [GDT32_POINTER]
