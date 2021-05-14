@@ -3,6 +3,7 @@ ASFLAG = -f bin
 ASFLAG64 = -f elf64
 BUILDDIR = build
 KERNELDIR = kernel
+LIBDIR=lib
 GCC = x86_64-elf-gcc
 GCCFLAG = -ffreestanding -c -nostdlib -Wall -Wextra -fno-pic
 BOOTDIR = boot
@@ -10,12 +11,14 @@ KERNEL_ASM_SRC = $(shell find $(KERNELDIR) -name "*.asm")
 KERNEL_ASM_OBJ = $(patsubst %.asm, $(BUILDDIR)/%.o, $(KERNEL_ASM_SRC))
 KERNEL_C_SRC = $(shell find $(KERNELDIR) -name "*.c")
 KERNEL_C_OBJ = $(patsubst %.c, $(BUILDDIR)/%.o, $(KERNEL_C_SRC))
+LIB_C_SRC = $(shell find $(LIBDIR) -name "*.c")
+LIB_C_OBJ = $(patsubst %.c, $(BUILDDIR)/%.o, $(LIB_C_SRC))
+
 
 default: boot kernel iso
 
 kernel:: $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ)
-	mkdir -p $(BUILDDIR)/iso
-	echo $(KERNEL_ASM_OBJ)
+	mkdir -p $(BUILDDIR)/iso	
 	x86_64-elf-ld -o $(BUILDDIR)/iso/kernel.sys $(BUILDDIR)/loader.bin $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) -T $(KERNELDIR)/linker.ld --oformat binary
 	@echo -e " $(ETERA) build kernel success"
 

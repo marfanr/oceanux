@@ -5,3 +5,4 @@
 %define Var.LoaderSeg                  Var.Loader >> 4
 %define Var.BaseSeg                    Var.Base >> 4
 %define Var.StackTop                   0x00007c00
+%define Var.StackBot                   0x00008000

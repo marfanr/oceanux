@@ -120,10 +120,8 @@ boot32:
     mov gs, ax
     mov ss, ax
 
-    mov ebx,0x8000
+    mov ebx, Var.StackBot
     mov esp, ebx
-
-    mov byte [0xB8000], 'S'
 
     call check_cpuid
     call check_long_mode
@@ -132,6 +130,7 @@ boot32:
 
     lgdt [gdt64.pointer]
 
+    ; activate long mode
     jmp gdt64.code_segment:boot64
 
 ; Chec CPU-ID -------------------------------------------------------------------
@@ -242,7 +241,7 @@ print:
 .halt:
     ret
 
-; -------------------------------------------------------------------------------
+; page_table -------------------------------------------------------------------------------
 section .bss
 align 4096
 page_table_l4:
@@ -255,6 +254,7 @@ stack_bottom:
     resb 4096 * 4
 stack_top:
 
+; GDT64 ------------------------------------------------------------------------------------
 section .rodata
 gdt64:
     dq 0 ; zero entry
@@ -267,11 +267,10 @@ gdt64:
 ; Entering
 ; 64 BIT ---------------------------------------------------------
 bits 64
-extern apa
+extern kern_main
 
 boot64:
-    mov byte [0xB8000], 'C'
-    call apa
+    call kern_main
     jmp $
 
 times   0x8000 - ($ - $$)    db  0

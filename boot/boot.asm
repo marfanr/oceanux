@@ -2,23 +2,19 @@ bits 16
 org 0
 
 %include    'boot/var.asm'
-
 jmp Var.BaseSeg : boot
 
-; the first loaded section
 boot:
-    cli
-    
-    mov     ax,     cs
-    mov     ds,     ax
-    mov     fs,     ax
-    mov     gs,     ax
+    ; cli disable interupt
+    mov ax, cs ; reset segment
+    mov ds, ax
+    mov fs, ax
+    mov gs, ax
+    xor ax, ax
+    mov ss, ax
+    mov sp, Var.StackTop
 
-    xor     ax,     ax
-    mov     ss,     ax
-    mov     sp,     Var.StackTop
-
-        mov     es,     ax
+    mov es, ax
 
     sti
 
@@ -34,12 +30,12 @@ boot:
     mov bx, 0x10
     mov di, Var.SectorBuffer
 
-    ; call readVolume
+    ; call volumeRead
 
     mov bx, 0x01
-    call readVolume
+    call volumeRead
 
-readVolume:
+volumeRead:
     call readDisk
     jc fail
 
@@ -51,7 +47,7 @@ readVolume:
     je fail
 
     inc bx
-    jmp readVolume
+    jmp volumeRead
 
     .found:
         mov si, msg.primaryFound
