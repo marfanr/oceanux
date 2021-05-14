@@ -43,77 +43,91 @@ init:
     int 10h
 
     ; load gdt
-    lgdt [gdt_pointer]
+    lgdt [GDT32_POINTER]
 
     ; switch protected mode
     mov eax, cr0
     or al, 1       ; set PE (Protection Enable) bit in CR0 (Control Register 0)
     mov cr0, eax
 
-    jmp CODE_SEG : boot32
+    jmp GDT32_CODE : boot32
 
-; GDT ------------------------------------------------------------
-gdt_start:
-    dq 0x0 ; offset 0x0
-  ; descriptor for cs
-gdt_code: ; offset 0x8
-    dw 0xFFFF; segment limit first 0-15 bits
-    dw 0x0 ; base first 0:15 bits
-    db 0x0 ; base firsts 0:15 bits
-    db 10011010b ; access byte
-    db 11001111b ; ; limit 16:19
-    db 0x0 ; base 24:31 bits
+; GDT --------------------------------------------------------------------------
+struc GDT32
+    .limitL: resw 1
+    .baseL: resw 1
+    .baseM: resb 1
+    .access: resb 1
+    .limitH: resb 1
+    .baseH: resb 1
+endstruc
 
-; descritor for es, ds , ss, fs
-gdt_data: ; offset 0x10
-    dw 0xFFFF ; segment limit 0-15 bits
-    dw 0x0; base first 0:15 bits
-    db 0x0 ; base 16:23bits
-    db 10010010b ; access byte
-    db 11001111b ; limit 16:19
-    db 0x0 ; base 24:31 bits
+align 4
+GDT32_START:
+    ; null descriptor
+    istruc GDT32
+        at GDT32.limitL, dw 0x0000
+        at GDT32.baseL, dw 0x0000
+        at GDT32.baseM, db 0x00
+        at GDT32.access, db 0x00
+        at GDT32.limitH, db 0x00
+        at GDT32.baseH, db 0x00
+    iend
+    ; Code descriptor
+    istruc GDT32
+        at GDT32.limitL, dw 0xFFFF
+        at GDT32.baseL, dw 0x0000
+        at GDT32.baseM, db 0x00
+        at GDT32.access, db 10011010b
+        at GDT32.limitH, db 11001111b
+        at GDT32.baseH, db 0x00
+    iend
+    ; Data Descriptor
+    istruc GDT32
+        at GDT32.limitL, dw 0xFFFF
+        at GDT32.baseL, dw 0x0000
+        at GDT32.baseM, db 0x00
+        at GDT32.access, db 10010010b
+        at GDT32.limitH, db 11001111b
+        at GDT32.baseH, db 0x00
+    iend
+GDT32_POINTER:
+    dw ($ - GDT32_START - 1)
+    dd GDT32_START
 
-gdt_end:
-gdt_pointer:
-    dw gdt_end - gdt_start - 1
-    dd gdt_start
+GDT32_CODE equ 0x08
+GDT32_DATA equ 0x10
 
-CODE_SEG equ gdt_code - gdt_start
-DATA_SEG equ gdt_data - gdt_start
-
-; Fail -----------------------------------------------------------
+; Fail -------------------------------------------------------------------------
 fail:
     mov si, msg.Fail
     call writeString
     jmp $
 
-; HARDWARE NOT SUPPORTED -----------------------------------------
+; HARDWARE NOT SUPPORTED -------------------------------------------------------
 HardwareNotSupported:
     mov si, msg.HardwareNotSupported
     call writeString
     jmp $
 
-; DATA -----------------------------------------------------------
+; DATA -------------------------------------------------------------------------
 
 loaderLoaded db "entering stage#2...", 0x0d, 0x0a, 0
 msg.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
 msg.HardwareNotSupported db "ERR: Hardware Not Supported :(", 0x0d, 0x0a, 0
 
-; LIB ------------------------------------------------------------
+; LIB --------------------------------------------------------------------------
 
 %include 'boot/string.asm'
 %include 'boot/A20.asm'
 
 ; Entering
-; 32 BIT ---------------------------------------------------------
-
-[bits 32]
-
+; 32 BIT -----------------------------------------------------------------------
+bits 32
 section .text
-
 boot32:
     .text:
-    mov ax, DATA_SEG
+    mov ax, GDT32_DATA
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -133,7 +147,7 @@ boot32:
     ; activate long mode
     jmp gdt64.code_segment:boot64
 
-; Chec CPU-ID -------------------------------------------------------------------
+; Chec CPU-ID ------------------------------------------------------------------
 check_cpuid:
     pushfd
     pop eax
@@ -203,7 +217,7 @@ enable_pagging:
     mov eax, cr4
     or eax, 1 << 5
     mov cr4, eax
-    ; emanle long mode
+
     mov ecx, 0xC0000080
     rdmsr
     or eax, 1 << 8
@@ -225,23 +239,22 @@ fail32:
     hlt
 
 
-; print video mode --------------------------------------------------------------
+; print video mode -------------------------------------------------------------
 msg32.Fail db "ERR: Booting Failure", 0x0d, 0x0a, 0
 
 print:
 .loop:
-    lodsb                           ; load string byte from [DS:SI] into AL
-    or al,al                        ;
-    jz .halt                         ; the above two lines => jump if AL==0. Equivalent to CMP AL; JE halt
-    or eax,0x0100           ; config text color to be 1 (blue)  [4bit bg color][4bit text color][8bit ascii]
-                        ; more color info can be found in https://en.wikipedia.org/wiki/Video_Graphics_Array#Color_palette
-    mov word [ebx], ax      ; feed ASCII and color to buffer in memory
-    add ebx,2                       ; increase ebx by two bytes (1byte for color, 1byte for ASCII)
+    lodsb
+    or al,al
+    jz .halt
+    or eax,0x0100
+    mov word [ebx], ax
+    add ebx,2
     jmp .loop
 .halt:
     ret
 
-; page_table -------------------------------------------------------------------------------
+; page_table -------------------------------------------------------------------
 section .bss
 align 4096
 page_table_l4:
@@ -254,7 +267,7 @@ stack_bottom:
     resb 4096 * 4
 stack_top:
 
-; GDT64 ------------------------------------------------------------------------------------
+; GDT64 ------------------------------------------------------------------------
 section .rodata
 gdt64:
     dq 0 ; zero entry
@@ -265,10 +278,9 @@ gdt64:
     dq gdt64
 
 ; Entering
-; 64 BIT ---------------------------------------------------------
+; 64 BIT -----------------------------------------------------------------------
 bits 64
 extern kern_main
-
 boot64:
     call kern_main
     jmp $

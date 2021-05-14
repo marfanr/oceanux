@@ -1,0 +1,5 @@
+-xc++
+-I
+./lib
+./lib/include
+./lib/include/nux

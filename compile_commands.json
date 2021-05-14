@@ -1,0 +1,7 @@
+-target
+efi_x86_64
+-D__ICCARM__
+-U__GNUC__
+-U__clang__
+-isystem./lib/include
+-isystem./lib/include/nux

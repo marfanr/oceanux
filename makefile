@@ -1,25 +1,32 @@
+BUILDDIR=build
+KERNELDIR=kernel
+BOOTDIR=boot
+LIBDIR=lib
+MODULESDIR=modules
+INCLIBDIR=$(LIBDIR)/include
+
 AS = nasm
 ASFLAG = -f bin
 ASFLAG64 = -f elf64
-BUILDDIR = build
-KERNELDIR = kernel
-LIBDIR=lib
 GCC = x86_64-elf-gcc
-GCCFLAG = -ffreestanding -c -nostdlib -Wall -Wextra -fno-pic
-BOOTDIR = boot
+GCCFLAG = -ffreestanding -c -nostdlib -Wall -Wextra -fno-pic -I $(INCLIBDIR)
+
 KERNEL_ASM_SRC = $(shell find $(KERNELDIR) -name "*.asm")
 KERNEL_ASM_OBJ = $(patsubst $(KERNELDIR)/%.asm, $(BUILDDIR)/$(KERNELDIR)%.o, $(KERNEL_ASM_SRC))
 KERNEL_C_SRC = $(shell find $(KERNELDIR) -name "*.c")
 KERNEL_C_OBJ = $(patsubst $(KERNELDIR)/%.c, $(BUILDDIR)/$(KERNELDIR)/%.o, $(KERNEL_C_SRC))
 LIB_C_SRC = $(shell find $(LIBDIR) -name "*.c")
 LIB_C_OBJ = $(patsubst $(LIBDIR)/%.c, $(BUILDDIR)/$(LIBDIR)/%.o, $(LIB_C_SRC))
-
+MODULES_C_SRC = $(shell find $(MODULESDIR) -name "*.c")
+MODULES_C_OBJ = $(patsubst $(MODULESDIR)/%.c, $(BUILDDIR)/$(MODULESDIR)/%.o, $(MODULES_C_SRC))
 
 default: boot main iso
 
-main:: $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(LIB_C_OBJ)
+main:: $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(LIB_C_OBJ) $(MODULES_C_OBJ)
 	mkdir -p $(BUILDDIR)/iso
-	x86_64-elf-ld -o $(BUILDDIR)/iso/kernel.sys $(BUILDDIR)/loader.bin $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(LIB_C_OBJ) -T $(KERNELDIR)/linker.ld --oformat binary
+	x86_64-elf-ld -o $(BUILDDIR)/iso/kernel.sys $(BUILDDIR)/loader.bin \
+	$(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(LIB_C_OBJ) $(MODULES_C_OBJ) \
+	-T $(KERNELDIR)/linker.ld --oformat binary
 	@echo -e " $(ETERA) build kernel success"
 
 $(BUILDDIR)/$(KERNELDIR)/%.o : $(KERNELDIR)/%.asm
@@ -28,9 +35,13 @@ $(BUILDDIR)/$(KERNELDIR)/%.o : $(KERNELDIR)/%.asm
 
 $(BUILDDIR)/$(KERNELDIR)/%.o  : $(KERNELDIR)/%.c
 	mkdir -p $(dir $@)
-	$(GCC) $(GCCFLAG) $< -o $@
+	$(GCC) $(GCCFLAG)  $< -o $@
 
 $(BUILDDIR)/$(LIBDIR)/%.o  : $(LIBDIR)/%.c
+	mkdir -p $(dir $@)
+	$(GCC) $(GCCFLAG) $< -o $@
+
+$(BUILDDIR)/$(MODULESDIR)/%.o  : $(MODULESDIR)/%.c
 	mkdir -p $(dir $@)
 	$(GCC) $(GCCFLAG) $< -o $@
 

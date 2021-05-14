@@ -1,3 +1,5 @@
+#include <nux/ctype.h>
+
 void putc(char c);
 void set(int fg, int bg);
 
@@ -12,10 +14,6 @@ void kern_main() {
 	v.video = (unsigned short*)0xB8000;
 	set(13, 0);
 	putc('H');
-    putc('E');
-    putc('L');
-    putc('L');
-    putc('O');
 }
 
 void putc(char c)
