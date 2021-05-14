@@ -193,7 +193,5 @@ ROOT_DIR db 0
 
 
 end_program:
-; Is the entry zero length? If so, we ran out of files in the
-
     times   0x1fe - ($ - $$)    db  0
     signature   dw 0xaa55
