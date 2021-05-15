@@ -48,7 +48,11 @@ init:
     jne fail
     pop es
 
-    ; 2.) Set VESA BIOS Mode
+    ; 2.) Get VESA BIOS Mode Info
+    xor ax, ax
+    mov ax, word [0x4900 + 5]
+
+    ; 3.) Set VESA BIOS Mode
     mov ax, 0x4F02
     mov bx, 0x4118
     int 0x10
