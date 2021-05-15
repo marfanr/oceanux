@@ -49,12 +49,21 @@ init:
     pop es
 
     ; 2.) Get VESA BIOS Mode Info
+    push es
     xor ax, ax
     mov ax, word [0x4900 + 5]
+    mov cx, ax
+    xor ax, ax
+    mov ax, 0x4F01
+    mov di, 0x5900
+    int 0x10
+    cmp ax , 0x004F
+    jne fail
+    pop es
 
     ; 3.) Set VESA BIOS Mode
     mov ax, 0x4F02
-    mov bx, 0x4118
+    mov bx, 0x4114
     int 0x10
     cmp ax, 0x004F
     jne fail
@@ -331,6 +340,7 @@ boot64:
     mov ss, ax
     mov edi, 0xb8000
     mov rdi, 0x4900
+    mov rsi, 0x5900
     ; call Main  Kernel Function
     call kern_main
     jmp $

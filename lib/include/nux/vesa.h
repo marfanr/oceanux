@@ -25,19 +25,19 @@ typedef struct mode_info_block {
   uint32_t winFuncPtr;
   uint16_t pitch;
 
-  uint16_t resolutionX, resolutionY;
+  uint16_t width, height;
   uint8_t wChar, yChar, planes, bpp, banks;
   uint8_t memoryModel, bankSize, imagePages;
   uint8_t reserved0;
 
-  uint8_t readMask, redPosition;
+  uint8_t redMask, redPosition;
   uint8_t greenMask, greenPosition;
   uint8_t blueMask, bluePosition;
   uint8_t reservedMask, reservedPosition;
   uint8_t directColorAttributes;
 
   // linear frame buffer
-  uint32_t physbase;
+  uint32_t framebuffer;
   uint32_t offScreenMemOff;
   uint16_t offScreenMemSize;
   uint8_t  reserved1 [206];
