@@ -7,7 +7,7 @@
 static void fillrect(unsigned char *vram, unsigned char r, unsigned char g, unsigned   char b, unsigned char w, unsigned char h);
 
 void kern_main(vbe_info_t* vbe_info, mode_info_t* mode_info) {
-    fillrect((unsigned char*)&mode_info->framebuffer, (unsigned char)mode_info->redMask,  (unsigned char)mode_info->greenMask,  (unsigned char)mode_info->blueMask, (unsigned char) 24, (unsigned char)50);
+    fillrect((unsigned char*)(size_t)mode_info->framebuffer, (unsigned char)mode_info->redMask,  (unsigned char)mode_info->greenMask,  (unsigned char)mode_info->blueMask, (unsigned char) 24, (unsigned char)50);
 }
 
 static void fillrect(unsigned char *vram, unsigned char r, unsigned char g, unsigned   char b, unsigned char w, unsigned char h) {
