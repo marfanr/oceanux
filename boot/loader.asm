@@ -48,10 +48,17 @@ init:
     jne fail
     pop es
 
-    ; test mode for debugging
-    mov ah, 0
-    mov ax, 3
+    ; 2.) Set VESA BIOS Mode
+    mov ax, 0x4F02
+    mov bx, 0x4118
     int 0x10
+    cmp ax, 0x004F
+    jne fail
+
+    ; ; test mode for debugging
+    ; mov ah, 0
+    ; mov ax, 3
+    ; int 0x10
 
     ; -------------------------------------------------------------------- VESA
 
