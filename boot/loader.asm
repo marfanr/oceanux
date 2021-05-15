@@ -37,24 +37,26 @@ _start:
     call A20Setup
 
 init:
-    cli
+    sti
     ; VESA ---------------------------------------------------------------------
+    ; 1.) Get VESA BIOS Information
     push es
     mov ax, 0x4F00
-    mov di, 0x49500
+    mov di, 0x4900
     int 0x10
     cmp ax, 0x004F
     jne fail
     pop es
 
-    mov ax, 0x4F02	; set VBE mode
-    mov bx, 0x4114	; VBE mode number; notice that bits 0-13 contain the mode number and bit 14 (LFB) is set and bit 15 (DM) is clear.
-    int 0x10			; call VBE BIOS
-    cmp ax, 0x004F	; test for error
-    jne fail
-    ; --------------------------------------------------------------------- VESA
+    ; test mode for debugging
+    mov ah, 0
+    mov ax, 3
+    int 0x10
+
+    ; -------------------------------------------------------------------- VESA
 
     ; load gdt
+    cli
     lgdt [GDT32_POINTER]
 
     ; switch protected mode
@@ -65,7 +67,7 @@ init:
     jmp GDT32_CODE : boot32
 
 ; GDT --------------------------------------------------------------------------
-struc GDT32
+struc GDT
     .limitL: resw 1
     .baseL: resw 1
     .baseM: resb 1
@@ -77,31 +79,31 @@ endstruc
 align 4
 GDT32_START:
     ; null descriptor
-    istruc GDT32
-        at GDT32.limitL, dw 0x0000
-        at GDT32.baseL, dw 0x0000
-        at GDT32.baseM, db 0x00
-        at GDT32.access, db 0x00
-        at GDT32.limitH, db 0x00
-        at GDT32.baseH, db 0x00
+    istruc GDT
+        at GDT.limitL, dw 0x0000
+        at GDT.baseL, dw 0x0000
+        at GDT.baseM, db 0x00
+        at GDT.access, db 0x00
+        at GDT.limitH, db 0x00
+        at GDT.baseH, db 0x00
     iend
     ; Code descriptor
-    istruc GDT32
-        at GDT32.limitL, dw 0xFFFF
-        at GDT32.baseL, dw 0x0000
-        at GDT32.baseM, db 0x00
-        at GDT32.access, db 10011010b
-        at GDT32.limitH, db 11001111b
-        at GDT32.baseH, db 0x00
+    istruc GDT
+        at GDT.limitL, dw 0xFFFF
+        at GDT.baseL, dw 0x0000
+        at GDT.baseM, db 0x00
+        at GDT.access, db 10011010b
+        at GDT.limitH, db 11001111b
+        at GDT.baseH, db 0x00
     iend
     ; Data Descriptor
-    istruc GDT32
-        at GDT32.limitL, dw 0xFFFF
-        at GDT32.baseL, dw 0x0000
-        at GDT32.baseM, db 0x00
-        at GDT32.access, db 10010010b
-        at GDT32.limitH, db 11001111b
-        at GDT32.baseH, db 0x00
+    istruc GDT
+        at GDT.limitL, dw 0xFFFF
+        at GDT.baseL, dw 0x0000
+        at GDT.baseM, db 0x00
+        at GDT.access, db 10010010b
+        at GDT.limitH, db 11001111b
+        at GDT.baseH, db 0x00
     iend
 GDT32_POINTER:
     dw ($ - GDT32_START - 1)
@@ -153,10 +155,10 @@ boot32:
     call setup_page_table
     call enable_pagging
 
-    lgdt [gdt64.pointer]
+    lgdt [GDT64.pointer]
 
     ; activate long mode
-    jmp gdt64.code_segment:boot64
+    jmp GDT64.code_segment:boot64
 
 ; Chec CPU-ID ------------------------------------------------------------------
 check_cpuid:
@@ -279,20 +281,45 @@ stack_top:
 
 ; GDT64 ------------------------------------------------------------------------
 section .rodata
-gdt64:
-    dq 0 ; zero entry
-.code_segment: equ $ - gdt64
-    dq (1 << 43) | (1 << 44) | (1 << 47) | (1 << 53) ; code segment
+GDT64:
+.null: equ $ - GDT64
+   dw 0
+   dw 0
+   db 0
+   db 0
+   db 1
+   db 0
+.code_segment: equ $ - GDT64
+    dw 0
+    dw 0
+    db 0
+    db 10011010b
+    db 10101111b
+    db 0
+.data_segment: equ $ - GDT64
+   dw 0
+   dw 0
+   db 0
+   db 10010010b
+   db 00000000b
+   db 0
 .pointer:
-    dw $ - gdt64 - 1
-    dq gdt64
+    dw $ - GDT64 - 1
+    dq GDT64
 
 ; Entering
 ; 64 BIT -----------------------------------------------------------------------
 bits 64
 extern kern_main
 boot64:
-     mov rdi, 0x49500
+    mov ax, GDT64.data_segment
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov edi, 0xb8000
+    mov rdi, 0x4900
     ; call Main  Kernel Function
     call kern_main
     jmp $
